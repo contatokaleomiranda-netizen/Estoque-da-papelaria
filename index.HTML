@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>fort.art · Estoque</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,600;0,900;1,300;1,600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg:         #13100E;
+      --surface:    #1E1814;
+      --card:       #261F19;
+      --card-hover: #2E2620;
+      --border:     rgba(212,168,83,0.12);
+      --border-hi:  rgba(212,168,83,0.35);
+      --amber:      #D4A853;
+      --amber-dim:  #9A7534;
+      --cream:      #F0E6D3;
+      --muted:      #7A6A57;
+      --green:      #5E8C6A;
+      --green-bg:   rgba(94,140,106,0.12);
+      --red:        #BC6A5C;
+      --red-bg:     rgba(188,106,92,0.12);
+      --yellow:     #D4A853;
+      --yellow-bg:  rgba(212,168,83,0.10);
+      --sidebar-w:  240px;
+      --radius:     16px;
+      --radius-sm:  10px;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      overflow-x: hidden;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--amber-dim); border-radius: 99px; }
+
+    /* ══════════════════════════════════════
+       SIDEBAR
+    ══════════════════════════════════════ */
+    .sidebar {
+      width: var(--sidebar-w);
+      min-height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 200;
+      overflow-y: auto;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-logo {
+      padding: 28px 24px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo h1 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.5rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      color: var(--amber);
+      line-height: 1;
+    }
+    .sidebar-logo p {
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-top: 4px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .sidebar-section {
+      padding: 20px 16px 8px;
+    }
+    .sidebar-section-label {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      padding: 0 8px;
+      margin-bottom: 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--muted);
+      transition: all 0.18s ease;
+      border: 1px solid transparent;
+      user-select: none;
+      position: relative;
+    }
+    .nav-item:hover { color: var(--cream); background: var(--card); }
+    .nav-item.active {
+      color: var(--amber);
+      background: var(--yellow-bg);
+      border-color: var(--border);
+    }
+    .nav-item i { width: 16px; text-align: center; font-size: 0.78rem; }
+    .nav-item .count {
+      margin-left: auto;
+      background: var(--card-hover);
+      border: 1px solid var(--border);
+      font-size: 0.65rem;
+      font-family: 'DM Mono', monospace;
+      padding: 2px 7px;
+      border-radius: 99px;
+      color: var(--muted);
+    }
+    .nav-item.active .count { background: var(--yellow-bg); color: var(--amber); border-color: var(--border-hi); }
+    .nav-item.urgent .count { background: var(--red-bg); color: var(--red); border-color: rgba(188,106,92,0.3); }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .sidebar-footer-btn {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.18s ease;
+      margin-bottom: 8px;
+    }
+    .sidebar-footer-btn:hover { color: var(--cream); border-color: var(--border-hi); background: var(--card); }
+    .sidebar-footer-btn i { width: 16px; text-align: center; font-size: 0.78rem; }
+
+    /* ══════════════════════════════════════
+       MAIN
+    ══════════════════════════════════════ */
+    .main {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(19,16,14,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .search-wrap {
+      flex: 1;
+      max-width: 380px;
+      position: relative;
+    }
+    .search-wrap i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    .search-wrap input {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      padding: 9px 16px 9px 38px;
+      border-radius: 99px;
+      outline: none;
+      transition: border-color 0.18s;
+    }
+    .search-wrap input::placeholder { color: var(--muted); }
+    .search-wrap input:focus { border-color: var(--border-hi); }
+
+    .view-toggle {
+      display: flex;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .view-btn {
+      padding: 8px 12px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.78rem;
+      transition: all 0.15s;
+    }
+    .view-btn.active { background: var(--yellow-bg); color: var(--amber); }
+
+    /* ── KPI STRIP ── */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .kpi {
+      background: var(--surface);
+      padding: 20px 28px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .kpi-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .kpi-icon.amber  { background: var(--yellow-bg); color: var(--amber); }
+    .kpi-icon.green  { background: var(--green-bg);  color: var(--green); }
+    .kpi-icon.red    { background: var(--red-bg);    color: var(--red); }
+    .kpi-icon.muted  { background: var(--card);      color: var(--muted); }
+    .kpi-data {}
+    .kpi-value {
+      font-family: 'Fraunces', serif;
+      font-size: 1.8rem;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+    .kpi-label { font-size: 0.68rem; color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* ── CONTENT ── */
+    .content { padding: 28px 32px; flex: 1; }
+
+    .section-title {
+      font-family: 'Fraunces', serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--cream);
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title span {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+      font-weight: 400;
+      background: var(--card);
+      padding: 3px 10px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+    }
+
+    /* ═══ GRID VIEW ═══ */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .p-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
+      animation: fadeUp 0.3s ease both;
+    }
+    .p-card:hover {
+      border-color: var(--border-hi);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .p-card-img {
+      height: 130px;
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .p-card-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.85;
+    }
+    .p-card-img .cat-pill {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(19,16,14,0.8);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 3px 10px;
+      border-radius: 99px;
+      color: var(--muted);
+    }
+    .p-card-img .status-dot {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .status-dot.ok  { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .status-dot.low { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+    .status-dot.out { background: var(--red); box-shadow: 0 0 6px var(--red); }
+
+    .p-card-body { padding: 16px; }
+    .p-card-name {
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: var(--cream);
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+
+    .stock-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .stock-num {
+      font-family: 'Fraunces', serif;
+      font-size: 2.4rem;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+    .stock-num.ok  { color: var(--cream); }
+    .stock-num.low { color: var(--yellow); }
+    .stock-num.out { color: var(--red); }
+    .stock-sub { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
+
+    .badge-status {
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 99px;
+    }
+    .badge-ok  { background: var(--green-bg); color: var(--green); }
+    .badge-low { background: var(--yellow-bg); color: var(--yellow); }
+    .badge-out { background: var(--red-bg); color: var(--red); }
+
+    .p-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .p-btn {
+      padding: 9px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.18s;
+    }
+    .p-btn-sell {
+      background: var(--red-bg);
+      color: var(--red);
+      border-color: rgba(188,106,92,0.2);
+    }
+    .p-btn-sell:hover { background: var(--red); color: white; border-color: var(--red); }
+    .p-btn-add {
+      background: var(--green-bg);
+      color: var(--green);
+      border-color: rgba(94,140,106,0.2);
+    }
+    .p-btn-add:hover { background: var(--green); color: white; border-color: var(--green); }
+
+    .p-batch {
+      display: flex;
+      gap: 6px;
+    }
+    .p-batch input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--cream);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      padding: 7px 12px;
+      border-radius: var(--radius-sm);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .p-batch input:focus { border-color: var(--border-hi); }
+    .p-batch button {
+      background: var(--yellow-bg);
+      border: 1px solid var(--border-hi);
+      color: var(--amber);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+    .p-batch button:hover { background: var(--amber); color: var(--bg); }
+
+    /* ═══ LIST VIEW ═══ */
+    .products-list { display: none; flex-direction: column; gap: 4px; }
+    .products-list.visible { display: flex; }
+    .products-grid.hidden { display: none; }
+
+    .list-row {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      display: grid;
+      grid-template-columns: 36px 1fr 110px 130px 160px;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 16px;
+      transition: border-color 0.15s;
+      animation: fadeUp 0.2s ease both;
+    }
+    .list-row:hover { border-color: var(--border-hi); }
+    .list-row .row-num {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+    }
+    .list-row .row-name { font-size: 0.85rem; font-weight: 500; }
+    .list-row .row-cat {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .list-row .row-stock {
+      font-family: 'DM Mono', monospace;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    .list-row .row-actions { display: flex; gap: 6px; }
+    .list-row .row-actions button {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .row-sell { background: var(--red-bg); color: var(--red); border-color: rgba(188,106,92,0.2) !important; }
+    .row-sell:hover { background: var(--red) !important; color: white !important; }
+    .row-plus { background: var(--green-bg); color: var(--green); border-color: rgba(94,140,106,0.2) !important; }
+    .row-plus:hover { background: var(--green) !important; color: white !important; }
+
+    /* ── EMPTY ── */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    .empty-state i { font-size: 2rem; margin-bottom: 12px; display: block; opacity: 0.4; }
+    .empty-state p { font-size: 0.85rem; }
+
+    /* ── TOAST ── */
+    .toast-wrap {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      background: var(--card);
+      border: 1px solid var(--border-hi);
+      color: var(--cream);
+      padding: 12px 20px;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: toastIn 0.3s cubic-bezier(.34,1.56,.64,1) both;
+      max-width: 360px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    .toast i { color: var(--amber); flex-shrink: 0; }
+    .toast.error i { color: var(--red); }
+    .toast.error { border-color: rgba(188,106,92,0.4); }
+    @keyframes toastIn {
+      from { transform: translateX(80px) scale(0.9); opacity: 0; }
+      to   { transform: translateX(0) scale(1); opacity: 1; }
+    }
+    @keyframes toastOut {
+      to { transform: translateX(80px) scale(0.9); opacity: 0; }
+    }
+
+    /* ── MODAL RESET ── */
+    .modal-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-bg.open { display: flex; }
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border-hi);
+      border-radius: var(--radius);
+      padding: 32px;
+      max-width: 420px;
+      width: 90%;
+      animation: fadeUp 0.25s ease both;
+    }
+    .modal h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+    }
+    .modal p { font-size: 0.82rem; color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .modal-cancel {
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .modal-cancel:hover { color: var(--cream); border-color: var(--border-hi); }
+    .modal-confirm {
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: var(--red);
+      color: white;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .modal-confirm:hover { opacity: 0.85; }
+
+    /* ── LOG PANEL ── */
+    .log-panel {
+      border-top: 1px solid var(--border);
+      padding: 20px 32px;
+      background: var(--surface);
+    }
+    .log-title {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .log-list { display: flex; flex-direction: column; gap: 6px; }
+    .log-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      animation: fadeUp 0.2s ease both;
+    }
+    .log-item i { width: 14px; text-align: center; }
+    .log-item i.up   { color: var(--green); }
+    .log-item i.down { color: var(--red); }
+    .log-item span { color: var(--cream); margin: 0 2px; }
+    .log-time {
+      margin-left: auto;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+    }
+
+    /* ── HAMBURGER (mobile) ── */
+    .hamburger {
+      display: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--cream);
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 190;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 700px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.open { display: block; }
+      .main { margin-left: 0; }
+      .hamburger { display: flex; }
+      .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+      .topbar { padding: 12px 16px; }
+      .content { padding: 20px 16px; }
+      .products-grid { grid-template-columns: 1fr; }
+      .list-row { grid-template-columns: 1fr 80px 120px; }
+      .list-row .row-num, .list-row .row-cat { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <h1>fort.art</h1>
+    <p>Estoque Interno</p>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Filtrar</div>
+    <div class="nav-item active" data-filter="todos">
+      <i class="fas fa-layer-group"></i> Todos
+      <span class="count" id="cnt-todos">0</span>
+    </div>
+    <div class="nav-item urgent" data-filter="baixoEstoque">
+      <i class="fas fa-exclamation-circle"></i> Estoque baixo
+      <span class="count" id="cnt-baixo">0</span>
+    </div>
+    <div class="nav-item" data-filter="esgotado">
+      <i class="fas fa-ban"></i> Esgotados
+      <span class="count" id="cnt-esgotado">0</span>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Categorias</div>
+    <div id="catNav"></div>
+  </div>
+
+  <div class="sidebar-footer">
+    <button class="sidebar-footer-btn" id="exportBtn">
+      <i class="fas fa-file-csv"></i> Exportar CSV
+    </button>
+    <button class="sidebar-footer-btn" id="resetBtn" style="color: var(--red); border-color: rgba(188,106,92,0.2);">
+      <i class="fas fa-rotate-left"></i> Redefinir estoque
+    </button>
+  </div>
+</nav>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <button class="hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+    <div class="search-wrap">
+      <i class="fas fa-magnifying-glass"></i>
+      <input type="text" id="searchInput" placeholder="Buscar produto…">
+    </div>
+    <div class="view-toggle">
+      <button class="view-btn active" id="btnGrid" title="Grade"><i class="fas fa-grip"></i></button>
+      <button class="view-btn" id="btnList" title="Lista"><i class="fas fa-list"></i></button>
+    </div>
+  </div>
+
+  <!-- KPI STRIP -->
+  <div class="kpi-strip">
+    <div class="kpi">
+      <div class="kpi-icon amber"><i class="fas fa-box"></i></div>
+      <div class="kpi-data">
+        <div class="kpi-value" id="kpiProdutos">0</div>
+        <div class="kpi-label">Produtos</div>
+      </div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon green"><i class="fas fa-cubes"></i></div>
+      <div class="kpi-data">
+        <div class="kpi-value" id="kpiUnidades">0</div>
+        <div class="kpi-label">Unidades</div>
+      </div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon red"><i class="fas fa-triangle-exclamation"></i></div>
+      <div class="kpi-data">
+        <div class="kpi-value" id="kpiBaixo">0</div>
+        <div class="kpi-label">Baixo estoque</div>
+      </div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-icon muted"><i class="fas fa-ban"></i></div>
+      <div class="kpi-data">
+        <div class="kpi-value" id="kpiEsgotado">0</div>
+        <div class="kpi-label">Esgotados</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <div class="section-title" id="sectionTitle">
+      Todos os produtos <span id="sectionCount">0</span>
+    </div>
+
+    <!-- GRID -->
+    <div class="products-grid" id="productsGrid"></div>
+
+    <!-- LIST -->
+    <div class="products-list" id="productsList"></div>
+  </div>
+
+  <!-- LOG -->
+  <div class="log-panel" id="logPanel" style="display:none">
+    <div class="log-title"><i class="fas fa-clock-rotate-left"></i> &nbsp;Histórico recente</div>
+    <div class="log-list" id="logList"></div>
+  </div>
+
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- RESET MODAL -->
+<div class="modal-bg" id="resetModal">
+  <div class="modal">
+    <h2>Redefinir estoque?</h2>
+    <p>Isso vai restaurar todos os produtos aos valores iniciais de quando o sistema foi configurado. A ação não pode ser desfeita.</p>
+    <div class="modal-actions">
+      <button class="modal-cancel" id="modalCancel">Cancelar</button>
+      <button class="modal-confirm" id="modalConfirm"><i class="fas fa-rotate-left"></i> Redefinir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ══════════════════════════════════════
+     DADOS DOS PRODUTOS (inalterados)
+  ══════════════════════════════════════ */
+  const PRODUTOS_BASE = [
+    { id: 1,  nome: "Apontador fino (in)",          categoria: "apontador", estoqueInicial: 15, imagem: "apontador_fino.jpg" },
+    { id: 2,  nome: "Apontador grande (logge)",     categoria: "apontador", estoqueInicial: 17, imagem: "apontador_grande.jpg" },
+    { id: 3,  nome: "Apontador master",             categoria: "apontador", estoqueInicial: 47, imagem: "apontador_master.jpg" },
+    { id: 4,  nome: "Borracha leo leo",             categoria: "borracha",  estoqueInicial: 17, imagem: "borracha_leo_leo.jpg" },
+    { id: 5,  nome: "Borracha meur",                categoria: "borracha",  estoqueInicial: 23, imagem: "borracha_meur.jpg" },
+    { id: 6,  nome: "Borracha grande (logge)",      categoria: "borracha",  estoqueInicial: 35, imagem: "borracha_grande.jpg" },
+    { id: 7,  nome: "Tesoura master",               categoria: "tesoura",   estoqueInicial: 50, imagem: "tesoura_master.jpg" },
+    { id: 8,  nome: "Caderno fino (in)",            categoria: "caderno",   estoqueInicial: 18, imagem: "caderno_fino.jpg" },
+    { id: 9,  nome: "Caderno arielle",              categoria: "caderno",   estoqueInicial: 15, imagem: "caderno_arielle.jpg" },
+    { id: 10, nome: "Caneta listrada solvenda",     categoria: "caneta",    estoqueInicial: 20, imagem: "caneta_listrada_solvenda.jpg" },
+    { id: 11, nome: "Caneta Bic azul",              categoria: "caneta",    estoqueInicial: 55, imagem: "caneta_bic_azul.jpg" },
+    { id: 12, nome: "Caneta ric vermelha",          categoria: "caneta",    estoqueInicial: 60, imagem: "caneta_ric_vermelha.jpg" },
+    { id: 13, nome: "Caneta azul (agul)",           categoria: "caneta",    estoqueInicial: 46, imagem: "caneta_azul_agul.jpg" },
+    { id: 14, nome: "Caneta preta",                 categoria: "caneta",    estoqueInicial: 52, imagem: "caneta_preta.jpg" },
+    { id: 15, nome: "Caneta solvenda lisa - azul",  categoria: "caneta",    estoqueInicial: 6,  imagem: "caneta_solvenda_lisa_azul.jpg" },
+    { id: 16, nome: "Caneta solvenda lisa - roxa",  categoria: "caneta",    estoqueInicial: 7,  imagem: "caneta_solvenda_lisa_roxa.jpg" },
+    { id: 17, nome: "Caneta solvenda lisa - rosa",  categoria: "caneta",    estoqueInicial: 8,  imagem: "caneta_solvenda_lisa_rosa.jpg" },
+    { id: 18, nome: "Caneta solvenda lisa - verde", categoria: "caneta",    estoqueInicial: 2,  imagem: "caneta_solvenda_lisa_verde.jpg" },
+    { id: 19, nome: "Caneta lisa dura (preta?)",    categoria: "caneta",    estoqueInicial: 39, imagem: "caneta_lisa_dura_preta.jpg" },
+    { id: 20, nome: "Caneta lisa dura vermelha",    categoria: "caneta",    estoqueInicial: 43, imagem: "caneta_lisa_dura_vermelha.jpg" },
+    { id: 21, nome: "Marcador master - rosa",       categoria: "marcador",  estoqueInicial: 53, imagem: "marcador_master_rosa.jpg" },
+    { id: 22, nome: "Marcador master - verde",      categoria: "marcador",  estoqueInicial: 5,  imagem: "marcador_master_verde.jpg" },
+    { id: 23, nome: "Marcador master - laranja",    categoria: "marcador",  estoqueInicial: 4,  imagem: "marcador_master_laranja.jpg" },
+    { id: 24, nome: "Marcador master - amarelo",    categoria: "marcador",  estoqueInicial: 10, imagem: "marcador_master_amarelo.jpg" },
+    { id: 25, nome: "Marcador master - azul",       categoria: "marcador",  estoqueInicial: 2,  imagem: "marcador_master_azul.jpg" },
+    { id: 26, nome: "Marcador pilot (mini)",        categoria: "marcador",  estoqueInicial: 15, imagem: "marcador_pilot_mini.jpg" },
+    { id: 27, nome: "Lapiseira (lopueria in)",      categoria: "lapiseira", estoqueInicial: 4,  imagem: "lapiseira_lopueria_in.jpg" },
+    { id: 28, nome: "Lapiseira pop (mini)",         categoria: "lapiseira", estoqueInicial: 38, imagem: "lapiseira_pop_mini.jpg" },
+    { id: 29, nome: "Lápis de cor mini",            categoria: "lapis",     estoqueInicial: 50, imagem: "lapis_cor_mini.jpg" },
+    { id: 30, nome: "Lápis boge",                  categoria: "lapis",     estoqueInicial: 55, imagem: "lapis_boge.jpg" },
+    { id: 31, nome: "Giz de cor",                  categoria: "giz",       estoqueInicial: 82, imagem: "giz_cor.jpg" },
+    { id: 32, nome: "Post-it",                     categoria: "outros",    estoqueInicial: 9,  imagem: "postit.jpg" },
+    { id: 33, nome: "Cola lontano",                categoria: "outros",    estoqueInicial: 9,  imagem: "cola_lontano.jpg" },
+    { id: 34, nome: "Tel-Bond",                    categoria: "outros",    estoqueInicial: 2,  imagem: "telbond.jpg" }
+  ];
+
+  const CATEGORIAS = [...new Set(PRODUTOS_BASE.map(p => p.categoria))].sort();
+  const STORAGE_KEY = 'fortart_estoque_v2';
+  const CAT_ICONS = {
+    apontador: 'fa-pen-nib', borracha: 'fa-eraser', tesoura: 'fa-scissors',
+    caderno: 'fa-book', caneta: 'fa-pen', marcador: 'fa-highlighter',
+    lapiseira: 'fa-pencil', lapis: 'fa-pencil', giz: 'fa-paintbrush', outros: 'fa-box-open'
+  };
+
+  let produtos = [];
+  let filtroAtivo = 'todos';
+  let viewMode = 'grid'; // 'grid' | 'list'
+  let actionLog = [];
+
+  /* ── STORAGE ── */
+  function carregarEstoque() {
+    const salvo = localStorage.getItem(STORAGE_KEY);
+    if (salvo) {
+      try {
+        const d = JSON.parse(salvo);
+        produtos = PRODUTOS_BASE.map(b => {
+          const s = d.produtos?.find(p => p.id === b.id);
+          return s ? { ...b, estoque: s.estoque } : { ...b, estoque: b.estoqueInicial };
+        });
+        actionLog = d.log || [];
+      } catch { resetProdutos(); }
+    } else { resetProdutos(); }
+    salvarEstoque();
+    init();
+  }
+
+  function resetProdutos() {
+    produtos = PRODUTOS_BASE.map(p => ({ ...p, estoque: p.estoqueInicial }));
+    actionLog = [];
+  }
+
+  function salvarEstoque() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      produtos: produtos.map(p => ({ id: p.id, estoque: p.estoque })),
+      log: actionLog.slice(0, 20)
+    }));
+  }
+
+  /* ── KPIs ── */
+  function atualizarKPIs() {
+    const total   = produtos.length;
+    const unid    = produtos.reduce((s, p) => s + p.estoque, 0);
+    const baixo   = produtos.filter(p => p.estoque > 0 && p.estoque <= 5).length;
+    const esgot   = produtos.filter(p => p.estoque === 0).length;
+
+    animNum('kpiProdutos', parseInt(document.getElementById('kpiProdutos').innerText) || 0, total);
+    animNum('kpiUnidades', parseInt(document.getElementById('kpiUnidades').innerText) || 0, unid);
+    animNum('kpiBaixo',    parseInt(document.getElementById('kpiBaixo').innerText)    || 0, baixo);
+    animNum('kpiEsgotado', parseInt(document.getElementById('kpiEsgotado').innerText) || 0, esgot);
+
+    document.getElementById('cnt-todos').innerText    = total;
+    document.getElementById('cnt-baixo').innerText    = baixo;
+    document.getElementById('cnt-esgotado').innerText = esgot;
+
+    CATEGORIAS.forEach(c => {
+      const el = document.getElementById('cnt-' + c);
+      if (el) el.innerText = produtos.filter(p => p.categoria === c).length;
+    });
+  }
+
+  function animNum(id, from, to) {
+    const el = document.getElementById(id);
+    if (!el || from === to) { if (el) el.innerText = to; return; }
+    const dur = 400, start = performance.now();
+    function step(now) {
+      const t = Math.min((now - start) / dur, 1);
+      el.innerText = Math.round(from + (to - from) * t);
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* ── NAV ── */
+  function buildNav() {
+    const catNav = document.getElementById('catNav');
+    catNav.innerHTML = '';
+    CATEGORIAS.forEach(cat => {
+      const icon = CAT_ICONS[cat] || 'fa-tag';
+      const div = document.createElement('div');
+      div.className = `nav-item ${filtroAtivo === cat ? 'active' : ''}`;
+      div.dataset.filter = cat;
+      div.innerHTML = `<i class="fas ${icon}"></i> ${cap(cat)} <span class="count" id="cnt-${cat}">0</span>`;
+      div.addEventListener('click', () => setFilter(cat));
+      catNav.appendChild(div);
+    });
+  }
+
+  function setFilter(f) {
+    filtroAtivo = f;
+    document.querySelectorAll('.nav-item').forEach(n => {
+      n.classList.toggle('active', n.dataset.filter === f);
+    });
+    renderizarProdutos();
+    closeSidebar();
+  }
+
+  /* ── RENDER ── */
+  function getStatus(stock) {
+    if (stock <= 0)  return { cls: 'out', badge: 'badge-out', text: 'ESGOTADO' };
+    if (stock <= 5)  return { cls: 'low', badge: 'badge-low', text: 'BAIXO' };
+    return           { cls: 'ok',  badge: 'badge-ok',  text: 'OK' };
+  }
+
+  function filtrarProdutos() {
+    const term = document.getElementById('searchInput').value.toLowerCase();
+    let list = produtos.filter(p => p.nome.toLowerCase().includes(term));
+    if (filtroAtivo === 'baixoEstoque') list = list.filter(p => p.estoque > 0 && p.estoque <= 5);
+    else if (filtroAtivo === 'esgotado') list = list.filter(p => p.estoque === 0);
+    else if (filtroAtivo !== 'todos') list = list.filter(p => p.categoria === filtroAtivo);
+    return list;
+  }
+
+  function renderizarProdutos() {
+    const list = filtrarProdutos();
+    const grid = document.getElementById('productsGrid');
+    const listEl = document.getElementById('productsList');
+    const titulo = filtroAtivo === 'todos' ? 'Todos os produtos'
+      : filtroAtivo === 'baixoEstoque' ? 'Estoque baixo'
+      : filtroAtivo === 'esgotado' ? 'Esgotados'
+      : cap(filtroAtivo);
+    document.getElementById('sectionTitle').innerHTML =
+      `${titulo} <span id="sectionCount">${list.length}</span>`;
+
+    grid.innerHTML = '';
+    listEl.innerHTML = '';
+
+    if (list.length === 0) {
+      const empty = `<div class="empty-state"><i class="fas fa-box-open"></i><p>Nenhum produto encontrado.</p></div>`;
+      grid.innerHTML = empty;
+      listEl.innerHTML = empty;
+      return;
+    }
+
+    list.forEach((prod, idx) => {
+      const s = getStatus(prod.estoque);
+      const delay = `animation-delay:${idx * 28}ms`;
+
+      /* GRID CARD */
+      const card = document.createElement('div');
+      card.className = 'p-card';
+      card.style = delay;
+      card.innerHTML = `
+        <div class="p-card-img">
+          <img src="${prod.imagem}" alt="${prod.nome}" onerror="this.src='https://placehold.co/300x130/1E1814/7A6A57?text=${encodeURIComponent(prod.nome)}'">
+          <span class="cat-pill">${prod.categoria}</span>
+          <span class="status-dot ${s.cls}"></span>
+        </div>
+        <div class="p-card-body">
+          <div class="p-card-name">${prod.nome}</div>
+          <div class="stock-row">
+            <div>
+              <div class="stock-sub">Estoque atual</div>
+              <div class="stock-num ${s.cls}">${prod.estoque}</div>
+            </div>
+            <span class="badge-status ${s.badge}">${s.text}</span>
+          </div>
+          <div class="p-actions">
+            <button class="p-btn p-btn-sell" data-id="${prod.id}"><i class="fas fa-cart-minus"></i> Vender 1</button>
+            <button class="p-btn p-btn-add"  data-id="${prod.id}"><i class="fas fa-plus"></i> +1</button>
+          </div>
+          <div class="p-batch">
+            <input type="number" id="batch-${prod.id}" value="10" min="1" placeholder="Qtd">
+            <button class="batch-btn" data-id="${prod.id}">+ Lote</button>
+          </div>
+        </div>`;
+      grid.appendChild(card);
+
+      /* LIST ROW */
+      const row = document.createElement('div');
+      row.className = 'list-row';
+      row.style = delay;
+      row.innerHTML = `
+        <span class="row-num">${String(idx+1).padStart(2,'0')}</span>
+        <div>
+          <div class="row-name">${prod.nome}</div>
+          <div class="row-cat">${prod.categoria}</div>
+        </div>
+        <div class="row-stock ${s.cls}" style="color:var(--${s.cls === 'ok' ? 'cream' : s.cls === 'low' ? 'yellow' : 'red'})">${prod.estoque} un.</div>
+        <div class="row-actions">
+          <button class="p-btn p-btn-sell row-sell" data-id="${prod.id}"><i class="fas fa-minus"></i> 1</button>
+          <button class="p-btn p-btn-add row-plus"  data-id="${prod.id}"><i class="fas fa-plus"></i> 1</button>
+        </div>`;
+      listEl.appendChild(row);
+    });
+
+    /* EVENTS */
+    document.querySelectorAll('.p-btn-sell').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = +btn.dataset.id;
+        const p = produtos.find(x => x.id === id);
+        if (p.estoque <= 0) { toast('Produto esgotado!', true); return; }
+        mudarEstoque(id, p.estoque - 1, 'venda');
+      });
+    });
+    document.querySelectorAll('.p-btn-add').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = +btn.dataset.id;
+        const p = produtos.find(x => x.id === id);
+        mudarEstoque(id, p.estoque + 1, 'entrada');
+      });
+    });
+    document.querySelectorAll('.batch-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = +btn.dataset.id;
+        const p = produtos.find(x => x.id === id);
+        const input = document.getElementById(`batch-${id}`);
+        const qty = Math.max(1, parseInt(input.value) || 10);
+        mudarEstoque(id, p.estoque + qty, 'lote', qty);
+        input.value = 10;
+      });
+    });
+  }
+
+  /* ── ESTOQUE ── */
+  function mudarEstoque(id, novoEstoque, tipo, qty = 1) {
+    const prod = produtos.find(p => p.id === id);
+    if (!prod) return;
+    if (novoEstoque < 0) { toast('Estoque não pode ficar negativo!', true); return; }
+    const delta = novoEstoque - prod.estoque;
+    prod.estoque = novoEstoque;
+    salvarEstoque();
+    atualizarKPIs();
+    renderizarProdutos();
+    logAcao(prod.nome, tipo, delta, novoEstoque);
+    const msg = tipo === 'venda' ? `Venda registrada — ${prod.nome} · ${novoEstoque} restantes`
+      : tipo === 'lote' ? `+${delta} unidades adicionadas — ${prod.nome}`
+      : `+1 — ${prod.nome} · ${novoEstoque} unidades`;
+    toast(msg);
+  }
+
+  /* ── LOG ── */
+  function logAcao(nome, tipo, delta, total) {
+    const now = new Date();
+    actionLog.unshift({ nome, tipo, delta, total, ts: now.toISOString() });
+    actionLog = actionLog.slice(0, 20);
+    renderLog();
+  }
+
+  function renderLog() {
+    if (actionLog.length === 0) { document.getElementById('logPanel').style.display = 'none'; return; }
+    document.getElementById('logPanel').style.display = 'block';
+    const el = document.getElementById('logList');
+    el.innerHTML = '';
+    actionLog.slice(0, 5).forEach(entry => {
+      const d = new Date(entry.ts);
+      const time = d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+      const isUp = entry.delta > 0;
+      const li = document.createElement('div');
+      li.className = 'log-item';
+      li.innerHTML = `
+        <i class="fas ${isUp ? 'fa-arrow-up up' : 'fa-arrow-down down'}"></i>
+        <span>${entry.nome}</span>
+        ${isUp ? `+${entry.delta}` : entry.delta} un. → <span>${entry.total} em estoque</span>
+        <span class="log-time">${time}</span>`;
+      el.appendChild(li);
+    });
+  }
+
+  /* ── TOAST ── */
+  function toast(msg, isError = false) {
+    const wrap = document.getElementById('toastWrap');
+    const div = document.createElement('div');
+    div.className = `toast${isError ? ' error' : ''}`;
+    div.innerHTML = `<i class="fas ${isError ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i> ${msg}`;
+    wrap.appendChild(div);
+    setTimeout(() => {
+      div.style.animation = 'toastOut 0.25s ease forwards';
+      setTimeout(() => div.remove(), 250);
+    }, 2800);
+  }
+
+  /* ── UTILS ── */
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function exportarCSV() {
+    const header = ['ID','Produto','Categoria','Estoque','Imagem'].join(';');
+    const rows = produtos.map(p => [p.id, p.nome, p.categoria, p.estoque, p.imagem].join(';'));
+    const blob = new Blob(['\uFEFF' + [header, ...rows].join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `estoque_fortart_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+    toast('CSV exportado com sucesso!');
+  }
+
+  /* ── SIDEBAR MOBILE ── */
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('open');
+  }
+
+  /* ── INIT ── */
+  function init() {
+    buildNav();
+    atualizarKPIs();
+    renderizarProdutos();
+    renderLog();
+  }
+
+  /* ── EVENTS ── */
+  document.getElementById('searchInput').addEventListener('input', renderizarProdutos);
+
+  document.getElementById('btnGrid').addEventListener('click', () => {
+    viewMode = 'grid';
+    document.getElementById('btnGrid').classList.add('active');
+    document.getElementById('btnList').classList.remove('active');
+    document.getElementById('productsGrid').classList.remove('hidden');
+    document.getElementById('productsList').classList.remove('visible');
+  });
+  document.getElementById('btnList').addEventListener('click', () => {
+    viewMode = 'list';
+    document.getElementById('btnList').classList.add('active');
+    document.getElementById('btnGrid').classList.remove('active');
+    document.getElementById('productsGrid').classList.add('hidden');
+    document.getElementById('productsList').classList.add('visible');
+  });
+
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.addEventListener('click', () => setFilter(n.dataset.filter));
+  });
+
+  document.getElementById('exportBtn').addEventListener('click', exportarCSV);
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    document.getElementById('resetModal').classList.add('open');
+  });
+  document.getElementById('modalCancel').addEventListener('click', () => {
+    document.getElementById('resetModal').classList.remove('open');
+  });
+  document.getElementById('modalConfirm').addEventListener('click', () => {
+    resetProdutos();
+    salvarEstoque();
+    atualizarKPIs();
+    renderizarProdutos();
+    renderLog();
+    document.getElementById('resetModal').classList.remove('open');
+    toast('Estoque restaurado aos valores iniciais.');
+  });
+  document.getElementById('resetModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+  });
+
+  document.getElementById('hamburger').addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('open');
+  });
+  document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+
+  /* ── START ── */
+  carregarEstoque();
+</script>
+</body>
+</html>
